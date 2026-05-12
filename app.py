@@ -377,7 +377,7 @@ if archivo_maestro and archivo_reporte:
 
         maestro["MATCH"] = maestro[
             col_nombre_conta
-        ].apply(limpiar_texto)
+        ].apply(extraer_nombre_descripcion)
 
         # =================================================
         # MERGE
