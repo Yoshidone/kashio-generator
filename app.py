@@ -28,9 +28,21 @@ def limpiar_texto(texto):
     if pd.isna(texto):
         return ""
 
-    texto = str(texto).upper().strip()
+    texto = str(texto)
+
+    texto = texto.upper()
+
+    texto = texto.strip()
+
+    texto = texto.replace("\n", " ")
+
+    texto = texto.replace("\r", " ")
+
+    texto = texto.replace("\t", " ")
 
     texto = re.sub(r"\s+", " ", texto)
+
+    texto = texto.encode("ascii", "ignore").decode()
 
     return texto
 
@@ -40,22 +52,26 @@ def extraer_nombre_descripcion(texto):
     if pd.isna(texto):
         return ""
 
-    texto = str(texto)
+    texto = str(texto).upper()
 
     patrones = [
-        "LICENCIA RECAUDOS ABR 26 -",
-        "LICENCIA RECAUDOS MAY 26 -",
-        "LICENCIA RECAUDOS JUN 26 -",
-        "LICENCIA RECAUDOS JUL 26 -",
-        "LICENCIA RECAUDOS AGO 26 -",
-        "LICENCIA RECAUDOS SEP 26 -",
-        "LICENCIA RECAUDOS OCT 26 -",
-        "LICENCIA RECAUDOS NOV 26 -",
-        "LICENCIA RECAUDOS DIC 26 -",
-        "LICENCIA RECAUDOS ENE 26 -",
-        "LICENCIA RECAUDOS FEB 26 -",
-        "LICENCIA RECAUDOS MAR 26 -",
-        "LICENCIA RECAUDOS"
+        "LICENCIA RECAUDOS",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS",
+        "LIC DE PLATAFORMA KASHIO RECAUDOS",
+        "PLATAFORMA KASHIO RECAUDOS",
+        "RECAUDOS ABR 26 -",
+        "RECAUDOS MAY 26 -",
+        "RECAUDOS JUN 26 -",
+        "RECAUDOS JUL 26 -",
+        "RECAUDOS AGO 26 -",
+        "RECAUDOS SEP 26 -",
+        "RECAUDOS OCT 26 -",
+        "RECAUDOS NOV 26 -",
+        "RECAUDOS DIC 26 -",
+        "RECAUDOS ENE 26 -",
+        "RECAUDOS FEB 26 -",
+        "RECAUDOS MAR 26 -",
+        "-",
     ]
 
     for patron in patrones:
@@ -181,7 +197,7 @@ dias_vencimiento = st.sidebar.number_input(
 )
 
 # =========================================================
-# UPLOADS
+# SUBIR ARCHIVOS
 # =========================================================
 
 st.subheader("📂 SUBIR ARCHIVOS")
@@ -245,7 +261,10 @@ if archivo_maestro and archivo_reporte:
             reporte,
             [
                 "MONEDA",
-                "MO"
+                "MO",
+                "MON",
+                "DIVISA",
+                "CURRENCY"
             ]
         )
 
@@ -253,12 +272,15 @@ if archivo_maestro and archivo_reporte:
             reporte,
             [
                 "PRECIO VEN",
-                "VALOR VEN"
+                "PRECIO VENTA",
+                "VALOR VEN",
+                "VALOR VENTA",
+                "IMPORTE"
             ]
         )
 
         # =================================================
-        # DETECTAR COLUMNAS MAESTRO
+        # DETECTAR COLUMNAS BASE MAESTRA
         # =================================================
 
         col_id_cliente = detectar_columna(
@@ -298,6 +320,9 @@ if archivo_maestro and archivo_reporte:
 
         if not col_descripcion:
             columnas_faltantes.append("DESCRIPCION")
+
+        if not col_moneda:
+            columnas_faltantes.append("MONEDA")
 
         if not col_monto:
             columnas_faltantes.append("MONTO")
@@ -390,7 +415,7 @@ if archivo_maestro and archivo_reporte:
         ).dt.strftime("%d/%m/%Y")
 
         # =================================================
-        # IDS
+        # IDS UNICOS
         # =================================================
 
         ultimo = obtener_ultimo_correlativo()
@@ -453,7 +478,7 @@ if archivo_maestro and archivo_reporte:
         })
 
         # =================================================
-        # VALIDAR MATCHS
+        # CLIENTES SIN MATCH
         # =================================================
 
         errores = plantilla[
@@ -467,15 +492,17 @@ if archivo_maestro and archivo_reporte:
             )
 
             st.dataframe(
-                errores[[
-                    "REFERENCIA",
-                    "DESCRIPCION"
-                ]],
+                errores[
+                    [
+                        "REFERENCIA",
+                        "DESCRIPCION"
+                    ]
+                ],
                 use_container_width=True
             )
 
         # =================================================
-        # PREVIEW
+        # VISTA PREVIA
         # =================================================
 
         st.subheader("📋 VISTA PREVIA")
