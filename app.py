@@ -20,7 +20,7 @@ HISTORIAL_FILE = "historial_ids.xlsx"
 EXPIRACION_FIJA = "31/12/2040"
 
 # =========================================================
-# FUNCIONES
+# LIMPIAR TEXTO
 # =========================================================
 
 def limpiar_texto(texto):
@@ -43,6 +43,26 @@ def limpiar_texto(texto):
     texto = texto.encode("ascii", "ignore").decode()
 
     return texto
+
+
+# =========================================================
+# NORMALIZAR MONEDA
+# =========================================================
+
+def normalizar_moneda(moneda):
+
+    if pd.isna(moneda):
+        return ""
+
+    moneda = limpiar_texto(moneda)
+
+    if moneda in ["SOLES", "SOL", "PEN"]:
+        return "PEN"
+
+    if moneda in ["DOLARES", "DÓLARES", "USD", "US$"]:
+        return "USD"
+
+    return moneda
 
 
 # =========================================================
@@ -488,7 +508,7 @@ if archivo_maestro and archivo_reporte:
                 final[col_correo],
 
             "MONEDA":
-                final[col_moneda],
+                final[col_moneda].apply(normalizar_moneda),
 
             "MONTO":
                 final[col_monto],
