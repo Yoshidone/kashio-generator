@@ -35,9 +35,7 @@ def limpiar_texto(texto):
     texto = texto.strip()
 
     texto = texto.replace("\n", " ")
-
     texto = texto.replace("\r", " ")
-
     texto = texto.replace("\t", " ")
 
     texto = re.sub(r"\s+", " ", texto)
@@ -47,40 +45,61 @@ def limpiar_texto(texto):
     return texto
 
 
+# =========================================================
+# EXTRAER NOMBRE DESDE DESCRIPCION
+# =========================================================
+
 def extraer_nombre_descripcion(texto):
 
     if pd.isna(texto):
         return ""
 
-    texto = str(texto).upper()
+    texto = limpiar_texto(texto)
 
     patrones = [
+
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS ABR 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS MAY 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS JUN 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS JUL 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS AGO 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS SEP 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS OCT 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS NOV 26 -",
+        "LIC. DE PLATAFORMA KASHIO RECAUDOS DIC 26 -",
+
+        "LICENCIA RECAUDOS ABR 26 -",
+        "LICENCIA RECAUDOS MAY 26 -",
+        "LICENCIA RECAUDOS JUN 26 -",
+        "LICENCIA RECAUDOS JUL 26 -",
+        "LICENCIA RECAUDOS AGO 26 -",
+        "LICENCIA RECAUDOS SEP 26 -",
+        "LICENCIA RECAUDOS OCT 26 -",
+        "LICENCIA RECAUDOS NOV 26 -",
+        "LICENCIA RECAUDOS DIC 26 -",
+
         "LICENCIA RECAUDOS",
         "LIC. DE PLATAFORMA KASHIO RECAUDOS",
-        "LIC DE PLATAFORMA KASHIO RECAUDOS",
         "PLATAFORMA KASHIO RECAUDOS",
-        "RECAUDOS ABR 26 -",
-        "RECAUDOS MAY 26 -",
-        "RECAUDOS JUN 26 -",
-        "RECAUDOS JUL 26 -",
-        "RECAUDOS AGO 26 -",
-        "RECAUDOS SEP 26 -",
-        "RECAUDOS OCT 26 -",
-        "RECAUDOS NOV 26 -",
-        "RECAUDOS DIC 26 -",
-        "RECAUDOS ENE 26 -",
-        "RECAUDOS FEB 26 -",
-        "RECAUDOS MAR 26 -",
-        "-",
+
+        "-"
     ]
 
     for patron in patrones:
-        texto = texto.replace(patron, "")
 
-    texto = texto.strip()
+        texto = texto.replace(
+            limpiar_texto(patron),
+            ""
+        )
 
-    return limpiar_texto(texto)
+    texto = limpiar_texto(texto)
 
+    return texto
+
+
+# =========================================================
+# DETECTAR COLUMNAS
+# =========================================================
 
 def detectar_columna(df, opciones):
 
@@ -96,6 +115,10 @@ def detectar_columna(df, opciones):
 
     return None
 
+
+# =========================================================
+# IDS
+# =========================================================
 
 def obtener_ultimo_correlativo():
 
@@ -150,7 +173,7 @@ def generar_id(mes, anio, correlativo):
 st.title("📄 GENERADOR KASHIO")
 
 st.markdown(
-    "### Generador Automático de Plantillas Kashio"
+    "### Generador Automático de Plantillas"
 )
 
 # =========================================================
@@ -226,7 +249,7 @@ if archivo_maestro and archivo_reporte:
         st.success("✅ Archivos cargados correctamente")
 
         # =================================================
-        # DETECTAR COLUMNAS REPORTE
+        # COLUMNAS REPORTE
         # =================================================
 
         col_fecha = detectar_columna(
@@ -261,8 +284,8 @@ if archivo_maestro and archivo_reporte:
             reporte,
             [
                 "MONEDA",
-                "MO",
                 "MON",
+                "MO",
                 "DIVISA",
                 "CURRENCY"
             ]
@@ -280,7 +303,7 @@ if archivo_maestro and archivo_reporte:
         )
 
         # =================================================
-        # DETECTAR COLUMNAS BASE MAESTRA
+        # COLUMNAS BASE MAESTRA
         # =================================================
 
         col_id_cliente = detectar_columna(
@@ -345,7 +368,7 @@ if archivo_maestro and archivo_reporte:
             st.stop()
 
         # =================================================
-        # MATCH INTELIGENTE
+        # MATCH
         # =================================================
 
         reporte["MATCH"] = reporte[
@@ -415,7 +438,7 @@ if archivo_maestro and archivo_reporte:
         ).dt.strftime("%d/%m/%Y")
 
         # =================================================
-        # IDS UNICOS
+        # IDS
         # =================================================
 
         ultimo = obtener_ultimo_correlativo()
@@ -494,8 +517,7 @@ if archivo_maestro and archivo_reporte:
             st.dataframe(
                 errores[
                     [
-                        "REFERENCIA",
-                        "DESCRIPCION"
+                        "REFERENCIA"
                     ]
                 ],
                 use_container_width=True
@@ -534,7 +556,7 @@ if archivo_maestro and archivo_reporte:
         )
 
         # =================================================
-        # DESCARGA
+        # DESCARGAR
         # =================================================
 
         with open(nombre_salida, "rb") as file:
