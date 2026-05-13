@@ -181,9 +181,34 @@ def guardar_historial(ids_generados):
     )
 
 
+# =========================================================
+# GENERAR ID
+# =========================================================
+
 def generar_id(mes, anio, correlativo):
 
-    return f"KSH{mes}{anio}{str(correlativo).zfill(5)}"
+    meses = {
+        "ENERO": "01",
+        "FEBRERO": "02",
+        "MARZO": "03",
+        "ABRIL": "04",
+        "MAYO": "05",
+        "JUNIO": "06",
+        "JULIO": "07",
+        "AGOSTO": "08",
+        "SEPTIEMBRE": "09",
+        "OCTUBRE": "10",
+        "NOVIEMBRE": "11",
+        "DICIEMBRE": "12"
+    }
+
+    anio_corto = str(anio)[-2:]
+
+    mes_num = meses[mes]
+
+    correlativo = str(correlativo).zfill(5)
+
+    return f"KSH{anio_corto}{mes_num}{correlativo}"
 
 
 # =========================================================
@@ -225,7 +250,26 @@ anio = st.sidebar.selectbox(
     [2025, 2026, 2027, 2028, 2029, 2030]
 )
 
+meses_cortos = {
+    "ENERO": "ENE",
+    "FEBRERO": "FEB",
+    "MARZO": "MAR",
+    "ABRIL": "ABR",
+    "MAYO": "MAY",
+    "JUNIO": "JUN",
+    "JULIO": "JUL",
+    "AGOSTO": "AGO",
+    "SEPTIEMBRE": "SEP",
+    "OCTUBRE": "OCT",
+    "NOVIEMBRE": "NOV",
+    "DICIEMBRE": "DIC"
+}
+
+# NOMBRE COMPLETO
 nombre_periodo = f"{mes} {anio}"
+
+# DESCRIPCION CORTA
+descripcion_periodo = f"{meses_cortos[mes]} {str(anio)[-2:]}"
 
 prefijo_descripcion = st.sidebar.text_input(
     "PREFIJO DESCRIPCION",
@@ -415,14 +459,7 @@ if archivo_maestro and archivo_reporte:
 
         final["REFERENCIA_FINAL"] = (
 
-            final[col_tipo_cpe]
-            .astype(str)
-            .str.upper()
-            .str.strip()
-
-            + " "
-
-            + final[col_nro_cp]
+            final[col_nro_cp]
             .astype(str)
             .str.strip()
         )
@@ -437,7 +474,7 @@ if archivo_maestro and archivo_reporte:
 
             + " "
 
-            + nombre_periodo
+            + descripcion_periodo
 
             + " "
 
@@ -550,8 +587,12 @@ if archivo_maestro and archivo_reporte:
         st.subheader("📋 VISTA PREVIA")
 
         st.dataframe(
-            plantilla,
+            plantilla.head(1000),
             use_container_width=True
+        )
+
+        st.info(
+            f"Mostrando primeras {min(len(plantilla),1000)} filas de {len(plantilla)} registros."
         )
 
         # =================================================
