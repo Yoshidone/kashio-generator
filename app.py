@@ -3,8 +3,9 @@
 import streamlit as st
 import pandas as pd
 from datetime import timedelta
-import os
 import re
+import random
+import string
 
 # =========================================================
 # CONFIG
@@ -16,7 +17,6 @@ st.set_page_config(
     layout="wide"
 )
 
-HISTORIAL_FILE = "historial_ids.xlsx"
 EXPIRACION_FIJA = "31/12/2040"
 
 # =========================================================
@@ -137,78 +137,16 @@ def detectar_columna(df, opciones):
 
 
 # =========================================================
-# IDS
+# GENERAR IDS UNICOS
 # =========================================================
 
-def obtener_ultimo_correlativo():
+def generar_id():
 
-    if not os.path.exists(HISTORIAL_FILE):
-        return 0
+    caracteres = string.ascii_uppercase + string.digits
 
-    try:
-
-        historial = pd.read_excel(HISTORIAL_FILE)
-
-        if historial.empty:
-            return 0
-
-        return historial["CORRELATIVO"].max()
-
-    except:
-        return 0
-
-
-def guardar_historial(ids_generados):
-
-    nuevo = pd.DataFrame(ids_generados)
-
-    if os.path.exists(HISTORIAL_FILE):
-
-        historial = pd.read_excel(HISTORIAL_FILE)
-
-        historial = pd.concat(
-            [historial, nuevo],
-            ignore_index=True
-        )
-
-    else:
-
-        historial = nuevo
-
-    historial.to_excel(
-        HISTORIAL_FILE,
-        index=False
+    return "KSH" + ''.join(
+        random.choices(caracteres, k=10)
     )
-
-
-# =========================================================
-# GENERAR ID
-# =========================================================
-
-def generar_id(mes, anio, correlativo):
-
-    meses = {
-        "ENERO": "01",
-        "FEBRERO": "02",
-        "MARZO": "03",
-        "ABRIL": "04",
-        "MAYO": "05",
-        "JUNIO": "06",
-        "JULIO": "07",
-        "AGOSTO": "08",
-        "SEPTIEMBRE": "09",
-        "OCTUBRE": "10",
-        "NOVIEMBRE": "11",
-        "DICIEMBRE": "12"
-    }
-
-    anio_corto = str(anio)[-2:]
-
-    mes_num = meses[mes]
-
-    correlativo = str(correlativo).zfill(5)
-
-    return f"KSH{anio_corto}{mes_num}{correlativo}"
 
 
 # =========================================================
@@ -490,27 +428,13 @@ if archivo_maestro and archivo_reporte:
         # IDS
         # =================================================
 
-        ultimo = obtener_ultimo_correlativo()
-
         ids_finales = []
-        historial_ids = []
 
         for i in range(len(final)):
 
-            correlativo = ultimo + i + 1
-
-            nuevo_id = generar_id(
-                mes,
-                anio,
-                correlativo
-            )
+            nuevo_id = generar_id()
 
             ids_finales.append(nuevo_id)
-
-            historial_ids.append({
-                "ID": nuevo_id,
-                "CORRELATIVO": correlativo
-            })
 
         # =================================================
         # PLANTILLA FINAL
@@ -610,14 +534,6 @@ if archivo_maestro and archivo_reporte:
 
         st.info(
             f"Mostrando primeras {min(len(registros_validos),1000)} filas de {len(registros_validos)} registros."
-        )
-
-        # =================================================
-        # GUARDAR HISTORIAL
-        # =================================================
-
-        guardar_historial(
-            historial_ids
         )
 
         # =================================================
