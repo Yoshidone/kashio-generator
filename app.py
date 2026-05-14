@@ -313,17 +313,12 @@ if archivo_maestro and archivo_reporte:
         st.success("✅ Archivos cargados correctamente")
 
         # =================================================
-        # COLUMNAS REPORTE
+        # DETECTAR COLUMNAS REPORTE
         # =================================================
 
         col_fecha = detectar_columna(
             reporte,
             ["FECHA"]
-        )
-
-        col_tipo_cpe = detectar_columna(
-            reporte,
-            ["TIPO CPE"]
         )
 
         col_nro_cp = detectar_columna(
@@ -367,7 +362,7 @@ if archivo_maestro and archivo_reporte:
         )
 
         # =================================================
-        # COLUMNAS BASE MAESTRA
+        # DETECTAR COLUMNAS MAESTRA
         # =================================================
 
         col_id_cliente = detectar_columna(
@@ -398,9 +393,6 @@ if archivo_maestro and archivo_reporte:
 
         if not col_fecha:
             columnas_faltantes.append("FECHA")
-
-        if not col_tipo_cpe:
-            columnas_faltantes.append("TIPO CPE")
 
         if not col_nro_cp:
             columnas_faltantes.append("NRO COMPROBANTE")
@@ -538,10 +530,10 @@ if archivo_maestro and archivo_reporte:
             "DESCRIPCION":
                 final["DESCRIPCION_FINAL"],
 
-            "ID CLIENTE (*)":
+            "ID CLIENTE":
                 final[col_id_cliente],
 
-            "EMAIL DEL CLIENTE (*)":
+            "EMAIL DEL CLIENTE":
                 final[col_correo],
 
             "MONEDA":
@@ -558,27 +550,52 @@ if archivo_maestro and archivo_reporte:
         })
 
         # =================================================
-        # CLIENTES SIN MATCH
+        # LIMPIAR ARCHIVO FINAL
+        # =================================================
+
+        plantilla = plantilla.fillna("")
+
+        plantilla = plantilla.replace(
+            r'[\n\r\t]',
+            ' ',
+            regex=True
+        )
+
+        # =================================================
+        # VALIDAR CLIENTES SIN MATCH
         # =================================================
 
         errores = plantilla[
-            plantilla["ID CLIENTE (*)"].isna()
+            plantilla["ID CLIENTE"] == ""
         ]
 
         if not errores.empty:
 
             st.warning(
-                "⚠️ Algunos clientes no tuvieron match"
+                f"⚠️ {len(errores)} clientes no tuvieron match"
             )
 
             st.dataframe(
                 errores[
                     [
-                        "REFERENCIA"
+                        "REFERENCIA",
+                        "DESCRIPCION"
                     ]
                 ],
                 use_container_width=True
             )
+
+        # =================================================
+        # MOSTRAR REGISTROS VALIDOS
+        # =================================================
+
+        registros_validos = plantilla[
+            plantilla["ID CLIENTE"] != ""
+        ]
+
+        st.success(
+            f"✅ Registros válidos: {len(registros_validos)}"
+        )
 
         # =================================================
         # VISTA PREVIA
@@ -587,12 +604,12 @@ if archivo_maestro and archivo_reporte:
         st.subheader("📋 VISTA PREVIA")
 
         st.dataframe(
-            plantilla.head(1000),
+            registros_validos.head(1000),
             use_container_width=True
         )
 
         st.info(
-            f"Mostrando primeras {min(len(plantilla),1000)} filas de {len(plantilla)} registros."
+            f"Mostrando primeras {min(len(registros_validos),1000)} filas de {len(registros_validos)} registros."
         )
 
         # =================================================
@@ -604,14 +621,14 @@ if archivo_maestro and archivo_reporte:
         )
 
         # =================================================
-        # EXPORTAR
+        # EXPORTAR SOLO VALIDOS
         # =================================================
 
         nombre_salida = (
             f"KASHIO_{mes}_{anio}.xlsx"
         )
 
-        plantilla.to_excel(
+        registros_validos.to_excel(
             nombre_salida,
             index=False
         )
