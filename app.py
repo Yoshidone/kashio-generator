@@ -112,9 +112,36 @@ def extraer_nombre_descripcion(texto):
             ""
         )
 
-    texto = limpiar_texto(texto)
+    # -------------------------------------------------
+    # MEJORA: normalizar abreviaciones y eliminar
+    # palabras que generan diferencias entre archivos
+    # -------------------------------------------------
 
-    return texto
+    reemplazos = {
+        "COND.":    "CONDOMINIO",
+        "EDIF.":    "EDIFICIO",
+        " OLD":     "",
+        " SAC":     "",
+        " S.A.C.":  "",
+        " S.A.C":   "",
+        " EIRL":    "",
+        " E.I.R.L.":"",
+        " SRL":     "",
+        " S.R.L.":  "",
+        " SA ":     " ",
+        " S.A.":    "",
+    }
+
+    for buscar, reemplazar in reemplazos.items():
+        texto = texto.replace(buscar, reemplazar)
+
+    # Eliminar caracteres que no sean letras, números o espacio
+    texto = re.sub(r'[^A-Z0-9 ]', ' ', texto)
+
+    # Colapsar espacios múltiples
+    texto = re.sub(r'\s+', ' ', texto)
+
+    return texto.strip()
 
 
 # =========================================================
@@ -372,6 +399,29 @@ if archivo_maestro and archivo_reporte:
         maestro["MATCH"] = maestro[
             col_nombre_conta
         ].apply(extraer_nombre_descripcion)
+
+        # -------------------------------------------------
+        # MEJORA: mostrar exactamente cuáles no matchean
+        # antes del merge para facilitar correcciones
+        # -------------------------------------------------
+
+        sin_match_previo = reporte[
+            ~reporte["MATCH"].isin(maestro["MATCH"])
+        ]
+
+        if not sin_match_previo.empty:
+
+            with st.expander(
+                f"🔍 VER {len(sin_match_previo)} NOMBRES SIN MATCH (antes del merge)",
+                expanded=False
+            ):
+
+                st.dataframe(
+                    sin_match_previo[
+                        [col_descripcion, "MATCH"]
+                    ].drop_duplicates(),
+                    use_container_width=True
+                )
 
         # =================================================
         # MERGE
