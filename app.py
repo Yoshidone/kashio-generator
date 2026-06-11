@@ -78,68 +78,63 @@ def extraer_nombre_descripcion(texto):
 
     patrones = [
 
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS ABR 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS MAY 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS JUN 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS JUL 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS AGO 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS SEP 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS OCT 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS NOV 26 -",
-        "LIC. DE PLATAFORMA KASHIO RECAUDOS DIC 26 -",
-
-        "LICENCIA RECAUDOS ABR 26 -",
-        "LICENCIA RECAUDOS MAY 26 -",
-        "LICENCIA RECAUDOS JUN 26 -",
-        "LICENCIA RECAUDOS JUL 26 -",
-        "LICENCIA RECAUDOS AGO 26 -",
-        "LICENCIA RECAUDOS SEP 26 -",
-        "LICENCIA RECAUDOS OCT 26 -",
-        "LICENCIA RECAUDOS NOV 26 -",
-        "LICENCIA RECAUDOS DIC 26 -",
-
-        "LICENCIA RECAUDOS",
         "LIC. DE PLATAFORMA KASHIO RECAUDOS",
         "PLATAFORMA KASHIO RECAUDOS",
+        "LICENCIA RECAUDOS",
+
+        "ENE 26",
+        "FEB 26",
+        "MAR 26",
+        "ABR 26",
+        "MAY 26",
+        "JUN 26",
+        "JUL 26",
+        "AGO 26",
+        "SEP 26",
+        "OCT 26",
+        "NOV 26",
+        "DIC 26",
 
         "-"
     ]
 
     for patron in patrones:
-
         texto = texto.replace(
             limpiar_texto(patron),
             ""
         )
 
-    # -------------------------------------------------
-    # MEJORA: normalizar abreviaciones y eliminar
-    # palabras que generan diferencias entre archivos
-    # -------------------------------------------------
-
     reemplazos = {
-        "COND.":    "CONDOMINIO",
-        "EDIF.":    "EDIFICIO",
-        " OLD":     "",
-        " SAC":     "",
-        " S.A.C.":  "",
-        " S.A.C":   "",
-        " EIRL":    "",
-        " E.I.R.L.":"",
-        " SRL":     "",
-        " S.R.L.":  "",
-        " SA ":     " ",
-        " S.A.":    "",
+        "COND.": "CONDOMINIO",
+        "EDIF.": "EDIFICIO",
+        " S.A.C.": "",
+        " S.A.C": "",
+        " SAC": "",
+        " S.A.": "",
+        " SA": "",
+        " EIRL": "",
+        " SRL": "",
+        " S.R.L.": "",
+        " OLD": ""
     }
 
     for buscar, reemplazar in reemplazos.items():
-        texto = texto.replace(buscar, reemplazar)
+        texto = texto.replace(
+            buscar,
+            reemplazar
+        )
 
-    # Eliminar caracteres que no sean letras, números o espacio
-    texto = re.sub(r'[^A-Z0-9 ]', ' ', texto)
+    texto = re.sub(
+        r'[^A-Z0-9 ]',
+        ' ',
+        texto
+    )
 
-    # Colapsar espacios múltiples
-    texto = re.sub(r'\s+', ' ', texto)
+    texto = re.sub(
+        r'\s+',
+        ' ',
+        texto
+    )
 
     return texto.strip()
 
@@ -392,37 +387,36 @@ if archivo_maestro and archivo_reporte:
         # MATCH
         # =================================================
 
-        reporte["MATCH"] = reporte[
-            col_descripcion
-        ].apply(extraer_nombre_descripcion)
+reporte["MATCH"] = reporte[
+    col_descripcion
+].apply(extraer_nombre_descripcion)
 
-        maestro["MATCH"] = maestro[
-            col_nombre_conta
-        ].apply(extraer_nombre_descripcion)
+maestro["MATCH"] = maestro[
+    col_nombre_conta
+].apply(extraer_nombre_descripcion)
 
-        # -------------------------------------------------
-        # MEJORA: mostrar exactamente cuáles no matchean
-        # antes del merge para facilitar correcciones
-        # -------------------------------------------------
+sin_match = reporte[
+    ~reporte["MATCH"].isin(maestro["MATCH"])
+]
 
-        sin_match_previo = reporte[
-            ~reporte["MATCH"].isin(maestro["MATCH"])
-        ]
+if not sin_match.empty:
 
-        if not sin_match_previo.empty:
+    st.warning(
+        f"⚠️ {len(sin_match)} clientes no tuvieron match"
+    )
 
-            with st.expander(
-                f"🔍 VER {len(sin_match_previo)} NOMBRES SIN MATCH (antes del merge)",
-                expanded=False
-            ):
+    st.dataframe(
+        sin_match[
+            [col_descripcion, "MATCH"]
+        ],
+        use_container_width=True
+    )
 
-                st.dataframe(
-                    sin_match_previo[
-                        [col_descripcion, "MATCH"]
-                    ].drop_duplicates(),
-                    use_container_width=True
-                )
-
+final = reporte.merge(
+    maestro,
+    on="MATCH",
+    how="left"
+)
         # =================================================
         # MERGE
         # =================================================
