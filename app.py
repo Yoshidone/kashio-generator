@@ -459,18 +459,21 @@ if archivo_maestro and archivo_reporte:
             + final["REFERENCIA_FINAL"]
         )
 
-        # =================================================
-        # FECHAS
-        # =================================================
+# =================================================
+# FECHAS
+# =================================================
 
-        final[col_fecha] = pd.to_datetime(
-            final[col_fecha]
-        )
+from datetime import datetime
 
-        final["VENCIMIENTO"] = (
-            final[col_fecha]
-            + timedelta(days=dias_vencimiento)
-        ).dt.strftime("%d/%m/%Y")
+fecha_base = datetime(
+    anio,
+    list(meses_cortos.keys()).index(mes) + 1,
+    1
+)
+
+final["VENCIMIENTO"] = (
+    fecha_base + timedelta(days=dias_vencimiento)
+).strftime("%d/%m/%Y")
 
         # =================================================
         # IDS
