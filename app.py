@@ -23,26 +23,23 @@ EXPIRACION_FIJA = "31/12/2040"
 # LIMPIAR TEXTO
 # =========================================================
 
-def limpiar_texto(texto):
+texto = str(texto)
 
-    if pd.isna(texto):
-        return ""
+# espacios invisibles
+texto = texto.replace(chr(160), " ")
 
-    texto = str(texto)
+# tabulaciones y saltos
+texto = texto.replace("\n", " ")
+texto = texto.replace("\r", " ")
+texto = texto.replace("\t", " ")
 
-    texto = texto.upper()
+# múltiples espacios
+texto = re.sub(r"\s+", " ", texto)
 
-    texto = texto.strip()
+texto = texto.strip()
+texto = texto.upper()
 
-    texto = texto.replace("\n", " ")
-    texto = texto.replace("\r", " ")
-    texto = texto.replace("\t", " ")
-
-    texto = re.sub(r"\s+", " ", texto)
-
-    texto = texto.encode("ascii", "ignore").decode()
-
-    return texto
+texto = texto.encode("ascii", "ignore").decode()
 
 
 # =========================================================
