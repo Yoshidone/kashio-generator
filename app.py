@@ -387,36 +387,40 @@ if archivo_maestro and archivo_reporte:
         # MATCH
         # =================================================
 
-reporte["MATCH"] = reporte[
-    col_descripcion
-].apply(extraer_nombre_descripcion)
+        reporte["MATCH"] = reporte[
+            col_descripcion
+        ].apply(extraer_nombre_descripcion)
 
-maestro["MATCH"] = maestro[
-    col_nombre_conta
-].apply(extraer_nombre_descripcion)
+        maestro["MATCH"] = maestro[
+            col_nombre_conta
+        ].apply(extraer_nombre_descripcion)
 
-sin_match = reporte[
-    ~reporte["MATCH"].isin(maestro["MATCH"])
-]
+        # =================================================
+        # CLIENTES SIN MATCH
+        # =================================================
 
-if not sin_match.empty:
+        sin_match = reporte[
+            ~reporte["MATCH"].isin(
+                maestro["MATCH"]
+            )
+        ]
 
-    st.warning(
-        f"⚠️ {len(sin_match)} clientes no tuvieron match"
-    )
+        if not sin_match.empty:
 
-    st.dataframe(
-        sin_match[
-            [col_descripcion, "MATCH"]
-        ],
-        use_container_width=True
-    )
+            st.warning(
+                f"⚠️ {len(sin_match)} clientes no tuvieron match"
+            )
 
-final = reporte.merge(
-    maestro,
-    on="MATCH",
-    how="left"
-)
+            st.dataframe(
+                sin_match[
+                    [
+                        col_descripcion,
+                        "MATCH"
+                    ]
+                ],
+                use_container_width=True
+            )
+
         # =================================================
         # MERGE
         # =================================================
