@@ -459,21 +459,22 @@ if archivo_maestro and archivo_reporte:
             + final["REFERENCIA_FINAL"]
         )
 
-# =================================================
-# FECHAS
-# =================================================
+        # =================================================
+        # FECHAS
+        # =================================================
 
-from datetime import datetime
+        from datetime import datetime
 
-fecha_base = datetime(
-    anio,
-    list(meses_cortos.keys()).index(mes) + 1,
-    1
-)
+        fecha_base = datetime(
+            anio,
+            list(meses_cortos.keys()).index(mes) + 1,
+            1
+        )
 
-final["VENCIMIENTO"] = (
-    fecha_base + timedelta(days=dias_vencimiento)
-).strftime("%d/%m/%Y")
+        final["VENCIMIENTO"] = (
+            fecha_base
+            + timedelta(days=dias_vencimiento)
+        ).strftime("%d/%m/%Y")
 
         # =================================================
         # IDS
